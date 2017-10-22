@@ -1,0 +1,2 @@
+-I/usr/local/Cellar/sdl2/2.0.6/include/SDL2
+-std=c++11
