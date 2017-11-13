@@ -2,6 +2,9 @@
 #include <SDL.h>
 #include <SDL_image.h>
 #include <string>
+#include <iostream>
+
+using namespace std;
 
 SDL_Texture* loadTexture( std::string path, SDL_Renderer* renderer)
 {
@@ -62,12 +65,14 @@ Note createNote(Displayable dis, int x, int y, int offset){
   Note note;
   note.dis = dis;
   note.dis.scaleFactor = 0.5f;
+  // cout << "x : " << x << "\n";
+  // cout << "y : " << y << "\n";
+  // cout << "what : " << offset << "\n";
   note.heightOffset = offset;
   note.dis.x = x;
   note.dis.y = y + offset;
   return note;
 }
-
 
 
 // plan

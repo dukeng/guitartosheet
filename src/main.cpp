@@ -1,9 +1,12 @@
+#include <iostream>
+#include <fstream>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <string>
+#include <map>
 #include "../include/display_music.h"
+#include "../include/world.h"
 #undef main
-
 
 
 int main(){
@@ -48,6 +51,10 @@ int main(){
         SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
         screenSurface = SDL_GetWindowSurface(window);
 
+        Resources resources = loadResources("images/legend", renderer);
+        World world = initWorld(&resources);
+        readNotesToWorld("note_output", &world);
+
         bool quit = false;
         Uint32 prevTime = SDL_GetTicks();
         while(quit == false){
@@ -67,36 +74,30 @@ int main(){
             if ( (deltaTime) > timePerFrame)
               {
                 prevTime = curTime;
+
                 // update
+
                 // draw
                 SDL_Color bgColor = { 255,255,255,255 };
                 SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
                 SDL_RenderClear(renderer);
 
-                Displayable stave = loadDisplayable("images/Staves/Stave\ lines\ 1\ system\ large.png", renderer);
-                stave.x = 50;
-                stave.y = 50;
-                stave.scaleFactor = 1.5f;
-                renderDisplayable(stave, renderer);
+                renderWorld(renderer, &world);
 
-                int startX = 60;
-                int xInc = 40;
-                int firstBarY = 50;
-                int yStep = 12;
-
-                Displayable crotchet = loadDisplayable("images/Notes/Crotchets/Crotchet.png" ,renderer);
-                Note cStemUp = createNote(crotchet, startX, firstBarY, -(int)(0.35*crotchet.h) );
+                // Note cStemUp = resources.notes["crotchetUp"];
+                // cout << cStemUp.heightOffset << "\n";
+                // cStemUp.dis.x += startX;
+                // cStemUp.dis.y += firstBarY;
                 //renderDisplayable(crotchetStemUp.dis, renderer);
 
 
-                Note n1 = cStemUp;
-                //n1.dis.y += yStep;
-                Note n2 = n1;
-                n2.dis.x += xInc;
-                n2.dis.y += 3*yStep;
+                // Note n1 = cStemUp;
+                // Note n2 = n1;
+                // n2.dis.x += xInc;
+                // n2.dis.y += 3*yStep;
 
-                renderDisplayable(n1.dis, renderer);
-                renderDisplayable(n2.dis, renderer);
+                // renderDisplayable(n1.dis, renderer);
+                // renderDisplayable(n2.dis, renderer);
 
                 SDL_RenderPresent(renderer);
               }
