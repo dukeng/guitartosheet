@@ -19,11 +19,13 @@ def main():
     # my code here
     notes = []
     notes.append([0,"C5",0])
-    notes.append([1,"D5",0])
-    notes.append([2,"E4",0])
-    notes.append([3,"F7",0])
-    #notes.append([5,"Eb4",0])
-    #notes.append([6,"F#7",0])
+    notes.append([4,"D5",0])
+    notes.append([8,"E4",0])
+    notes.append([12,"F5",0])
+    notes.append([16,"C5",0])
+    notes.append([20,"D5",0])
+    notes.append([24,"E4",0])
+    notes.append([28,"F5",0])
     tempo = 50
     generate_note_file(tempo, notes)
 
