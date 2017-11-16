@@ -56,8 +56,8 @@ Displayable loadDisplayable(std::string path, SDL_Renderer* renderer){
   return displayable;
 }
 
-void renderDisplayable(Displayable dis, SDL_Renderer* renderer){
-  SDL_Rect rect = {dis.x, dis.y, (int)(dis.w*dis.scaleFactor), (int)(dis.h*dis.scaleFactor)};
+void renderDisplayable(Displayable dis, SDL_Renderer* renderer, SDL_Rect camera){
+  SDL_Rect rect = {dis.x-camera.x, dis.y-camera.y, (int)(dis.w*dis.scaleFactor), (int)(dis.h*dis.scaleFactor)};
   SDL_RenderCopy(renderer, dis.texture, NULL, &rect);
 }
 

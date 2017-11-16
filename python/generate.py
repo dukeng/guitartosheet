@@ -21,11 +21,11 @@ def main():
     # my code here
     notes = []
     notes.append([0,"C5",0])
-    notes.append([4,"D5",0])
-    notes.append([8,"E4",0])
-    notes.append([12,"F5",0])
-    notes.append([16,"C5",0])
-    notes.append([20,"D5",0])
+    #notes.append([4,"D5",0])
+    # notes.append([8,"E4",0])
+    # notes.append([12,"F5",0])
+    # notes.append([16,"C5",0])
+    # notes.append([20,"D5",0])
     # notes.append([24,"E4",0])
     # notes.append([28,"F5",0])
     # notes.append([32,"F5",0])
@@ -38,7 +38,7 @@ def main():
 
     subprocess.Popen(["guitartosheet"])
 
-    cur = 20;
+    cur = 0;
 
     while True:
         note_name = input("\nEnter a note: ")

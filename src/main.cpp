@@ -48,6 +48,8 @@ int main(){
         Uint32 framesPerSecond = 60;
         Uint32 timePerFrame = 1000 / framesPerSecond;
 
+        SDL_Rect camera = { 0, 0, sWidth, sHeight };
+
         SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
         screenSurface = SDL_GetWindowSurface(window);
 
@@ -61,8 +63,20 @@ int main(){
                 if(e.type == SDL_QUIT){
                     quit = true;
                 }
-                else if(e.type == SDL_KEYDOWN || e.type == SDL_KEYUP){
-                  // printf("keypress: %d", e.key.keysym.sym);
+                else if(e.type == SDL_KEYDOWN){
+                  switch(e.key.keysym.sym){
+                    case SDLK_q:
+                      quit = true;
+                      break;
+                    case SDLK_j:
+                      camera.y += 30;
+                      break;
+                    case SDLK_k:
+                      camera.y -= 30;
+                      break;
+                    default:
+                      printf("keypress: %d", e.key.keysym.sym);
+                  }
                 }
                 else{
                     // printf("Unrecognized SDL event %d \n", e.type);
@@ -82,7 +96,7 @@ int main(){
                 SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
                 SDL_RenderClear(renderer);
 
-                renderWorld(renderer, &world);
+                renderWorld(renderer, &world, camera);
 
                 // Note cStemUp = resources.notes["crotchetUp"];
                 // cout << cStemUp.heightOffset << "\n";

@@ -160,15 +160,15 @@ World initWorld(Resources* resources){
   return world;
 }
 
-void renderWorld(SDL_Renderer* renderer, World* world){
+void renderWorld(SDL_Renderer* renderer, World* world, SDL_Rect camera){
   for(int i = 0; i < world->staves.size(); i++){
-    renderDisplayable(world->staves[i], renderer);
+    renderDisplayable(world->staves[i], renderer, camera);
   }
   for(int i = 0; i < world->symbols.size(); i++){
-    renderDisplayable(world->symbols[i], renderer);
+    renderDisplayable(world->symbols[i], renderer, camera);
   }
   for(int i = 0; i < world->notes.size(); i++){
-    renderDisplayable(world->notes[i].dis, renderer);
+    renderDisplayable(world->notes[i].dis, renderer, camera);
   }
 
 }
