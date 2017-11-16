@@ -53,7 +53,6 @@ int main(){
 
         Resources resources = loadResources("images/legend", renderer);
         World world = initWorld(&resources);
-        readNotesToWorld("note_output", &world);
 
         bool quit = false;
         Uint32 prevTime = SDL_GetTicks();
@@ -63,10 +62,10 @@ int main(){
                     quit = true;
                 }
                 else if(e.type == SDL_KEYDOWN || e.type == SDL_KEYUP){
-                  printf("keypress: %d", e.key.keysym.sym);
+                  // printf("keypress: %d", e.key.keysym.sym);
                 }
                 else{
-                    printf("Unrecognized SDL event %d \n", e.type);
+                    // printf("Unrecognized SDL event %d \n", e.type);
                 }
               }
             Uint32 curTime = SDL_GetTicks();
@@ -76,6 +75,7 @@ int main(){
                 prevTime = curTime;
 
                 // update
+                readNotesToWorld("note_output", &world);
 
                 // draw
                 SDL_Color bgColor = { 255,255,255,255 };

@@ -75,10 +75,20 @@ struct World{
   int a5Y = 110;
   int yStep = 12;
 
+  // Additional spacing to add to notes in the second bar after the first
   int nextBarX = 40;
 
-  int curX;
-  int curTime = 0;
+  int curX; // in pixels
+  int curTime = 0; // in sixteenth notes
+
+  int curY; // in pixels
+  int curRow;
+
+  // Spacing to next row of bars
+  int fullDownSpacing;
+
+  int notesRead = 0;
+
   // cur note #, location ect
   // distances to go for next note
   // when to change lines
@@ -86,39 +96,40 @@ struct World{
   int barlineSpacing = -20;
 };
 
-World initWorld(Resources* resources){
-  World world;
-  world.resources = resources;
-
-  world.curX = world.startX;
-
+void addRowToWorld(World* world){
+  world->curRow++;
+  world->curY = world->curRow*world->fullDownSpacing;
+  world->curX = world->startX;
 
   int baseX = 50;
-  int baseY = 50;
+  int baseY = 50 + world->curY;
+
+  Resources* resources = world->resources;
+
   Displayable stave = resources->displayables["stave"];
   stave.x = baseX;
   stave.y = baseY;
-  world.staves.push_back(stave);
+  world->staves.push_back(stave);
   stave.x += stave.w*stave.scaleFactor;
-  world.staves.push_back(stave);
+  world->staves.push_back(stave);
 
   // bass bars
   stave.x -= stave.w*stave.scaleFactor;
   stave.y += stave.h*stave.scaleFactor*2;
-  world.staves.push_back(stave);
+  world->staves.push_back(stave);
   stave.x += stave.w*stave.scaleFactor;
-  world.staves.push_back(stave);
+  world->staves.push_back(stave);
 
   // barline
   Displayable barline = resources->displayables["barline"];
-  barline.x = baseX+world.barlineSpacing;
+  barline.x = baseX+world->barlineSpacing;
   barline.y = baseY;
   //world.staves.push_back(barline);
 
   barline.x += stave.w*stave.scaleFactor + 40;
-  world.staves.push_back(barline);
+  world->staves.push_back(barline);
   barline.x += stave.w*stave.scaleFactor - 40;
-  world.staves.push_back(barline);
+  world->staves.push_back(barline);
 
   Displayable treble= resources->displayables["trebleClef"];
   treble.x = baseX;
@@ -128,8 +139,23 @@ World initWorld(Resources* resources){
   bass.x = baseX;
   bass.y = baseY + stave.h*stave.scaleFactor*2 + 30;
 
-  world.symbols.push_back(treble);
-  world.symbols.push_back(bass);
+  world->symbols.push_back(treble);
+  world->symbols.push_back(bass);
+
+}
+
+World initWorld(Resources* resources){
+  World world;
+  world.resources = resources;
+
+  world.curX = world.startX;
+  world.curY = 0;
+  world.curRow = -1;
+
+  Displayable stave = resources->displayables["stave"];
+  world.fullDownSpacing = stave.h*6;
+
+  addRowToWorld(&world);
 
   return world;
 }
@@ -167,6 +193,13 @@ void readNotesToWorld(string filePath, World* world){
     file >> note_name;
     file >> note_type;
 
+    // cout << "test1. numNotes: " << numNotes << "" << "\n";
+    if(i < world->notesRead){
+      continue;
+    }
+    // cout << "test2: \n";
+    world->notesRead++;
+
     char note_c = note_name[0];
     int noteNum = strchr(note_locations,note_c) - note_locations;
     int adj = note_name[1] - '0';
@@ -180,14 +213,19 @@ void readNotesToWorld(string filePath, World* world){
     // todo: change to correct note for situation
     Note note = world->resources->notes["crotchetUp"];
     // this is currently assuming everything is a quarter note
-
-    if(note_time > 15 && world->curTime <= 15){
-      world->curX+=world->nextBarX;
+    while(note_time >= 32*(world->curRow+1)){
+      addRowToWorld(world);
+      world->curX -= ((32*(world->curRow)) - world->curTime) * world->xIncSixteenth;
     }
     int timeDiff = (note_time-world->curTime);
+    int note_time_local = note_time % 32;
+    int cur_time_local = world->curTime % 32;
+    if(note_time_local > 15 && cur_time_local <= 15){
+      world->curX+=world->nextBarX;
+    }
     cout << "diff: " << timeDiff << "\n";
     note.dis.x += world->curX + timeDiff*world->xIncSixteenth + noteLenMulti*(world->xIncSixteenth/2);
-    note.dis.y += distFromCenter;
+    note.dis.y += world->curY + distFromCenter;
     world->notes.push_back(note);
     cout << "x: " << note.dis.x << "\n";
 
