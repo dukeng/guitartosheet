@@ -1,3 +1,11 @@
 -I/usr/local/Cellar/sdl2/2.0.6/include/SDL2
 -I/usr/local/Cellar/sdl2_image/2.0.2/include/SDL2
+-IC:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/5.1.0/include
+-IC:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/5.1.0/include-fixed
+-IC:/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/5.1.0/../../../../x86_64-w64-mingw32/include
+-IC:/mingw64/lib/gcc/../../x86_64-w64-mingw32/include/c++
+-IC:/mingw64/lib/gcc/../../x86_64-w64-mingw32/include/c++/x86_64-w64-mingw32
+-IC:/mingw64/lib/gcc/../../x86_64-w64-mingw32/include/c++/backward
+-IC:/vs_dev_lib/lib/include
+-stdlib=libc++
 -std=c++11
