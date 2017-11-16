@@ -1,3 +1,5 @@
+import subprocess
+
 # tempo is defined as time between the two smallest notes in milliseconds
 # each notes is defined as follows:
 # [note_time, note_name, note_type]
@@ -24,15 +26,27 @@ def main():
     notes.append([12,"F5",0])
     notes.append([16,"C5",0])
     notes.append([20,"D5",0])
-    notes.append([24,"E4",0])
-    notes.append([28,"F5",0])
-    notes.append([32,"F5",0])
-    # notes.append([36,"F5",0])
+    # notes.append([24,"E4",0])
+    # notes.append([28,"F5",0])
+    # notes.append([32,"F5",0])
+    # # notes.append([36,"F5",0])
     # notes.append([50,"E5",0])
     # notes.append([54,"E5",0])
     # notes.append([58,"E5",0])
     tempo = 50
     generate_note_file(tempo, notes)
+
+    subprocess.Popen(["guitartosheet"])
+
+    cur = 20;
+
+    while True:
+        note_name = input("\nEnter a note: ")
+        cur += 4;
+        notes.append([cur,note_name,0])
+        generate_note_file(tempo, notes)
+
+
 
 if __name__ == "__main__":
     main()
