@@ -20,7 +20,7 @@ def generate_note_file(tempo,notes):
 def main():
     # my code here
     notes = []
-    notes.append([0,"C5",0])
+    notes.append([0,"C5",2])
     #notes.append([4,"D5",0])
     # notes.append([8,"E4",0])
     # notes.append([12,"F5",0])
@@ -36,15 +36,15 @@ def main():
     tempo = 50
     generate_note_file(tempo, notes)
 
-    subprocess.Popen(["guitartosheet"])
+    subprocess.Popen(["./guitartosheet"])
 
-    cur = 0;
+    cur = 4;
 
     while True:
-        note_name = input("\nEnter a note: ")
-        cur += 4;
-        notes.append([cur,note_name,0])
+        note_name = raw_input("\nEnter a note: ")
+        notes.append([cur,note_name,2])
         generate_note_file(tempo, notes)
+        cur += 4;
 
 
 

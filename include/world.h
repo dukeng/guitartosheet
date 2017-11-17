@@ -72,7 +72,7 @@ struct World{
   int startX = 150;
   int xIncSixteenth = 24;
 
-  int a5Y = 110;
+  int a4Y = 110;
   int yStep = 12;
 
   // Additional spacing to add to notes in the second bar after the first
@@ -202,16 +202,27 @@ void readNotesToWorld(string filePath, World* world){
 
     char note_c = note_name[0];
     int noteNum = strchr(note_locations,note_c) - note_locations;
-    int adj = note_name[1] - '0';
+    int adj;
+    char acc = ' ';
+    if(note_name[1] == '#' || note_name[1] == 'b'){
+      acc = note_name[1];
+      adj = note_name[2] - '0';
+    }
+    else{
+      adj = note_name[1] - '0';
+    }
 
-    int stepsFromCenter = (7*(5-adj)) - noteNum;
-    int distFromCenter = world->a5Y + stepsFromCenter * world->yStep;
+    int stepsFromCenter = (7*(4-adj)) - noteNum;
+    int distFromCenter = world->a4Y + stepsFromCenter * world->yStep;
 
-    // just calling everything a quarter note for now
-    int noteLenMulti = 4;
+    int noteLenMulti = 1 << note_type;
 
-    // todo: change to correct note for situation
-    Note note = world->resources->notes["crotchetUp"];
+    Note note;
+    if(note_type == 1)
+      note = world->resources->notes["quaverUp"];
+    if(note_type == 2)
+      note = world->resources->notes["crotchetUp"];
+
     // this is currently assuming everything is a quarter note
     while(note_time >= 32*(world->curRow+1)){
       addRowToWorld(world);
@@ -223,11 +234,26 @@ void readNotesToWorld(string filePath, World* world){
     if(note_time_local > 15 && cur_time_local <= 15){
       world->curX+=world->nextBarX;
     }
-    cout << "diff: " << timeDiff << "\n";
+    // cout << "diff: " << timeDiff << "\n";
+
     note.dis.x += world->curX + timeDiff*world->xIncSixteenth + noteLenMulti*(world->xIncSixteenth/2);
     note.dis.y += world->curY + distFromCenter;
     world->notes.push_back(note);
-    cout << "x: " << note.dis.x << "\n";
+
+    if(acc != ' '){
+      Displayable accidental;
+      if(acc == '#'){
+        accidental = world->resources->displayables["sharp"];
+      }
+      if(acc == 'b'){
+        accidental = world->resources->displayables["flat"];
+      }
+      accidental.x = note.dis.x - 18;
+      accidental.y = note.dis.y - note.heightOffset;
+      world->symbols.push_back(accidental);
+    }
+
+    // cout << "x: " << note.dis.x << "\n";
 
     world->curTime = note_time;
     world->curX += timeDiff*world->xIncSixteenth;
