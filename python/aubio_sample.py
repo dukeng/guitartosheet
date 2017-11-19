@@ -242,14 +242,18 @@ print("length", len(final_results))
 
 length_all_sample_max = len(allsamples_max)
 note_threshold2 = 50
+low_threshold = 0.05
 note_time = 0
 detected_notes = []
 
 idx = 0
 while idx < length_all_sample_max:
+    if allsamples_max[idx] < low_threshold and note_time > 0 and len(detected_notes[-1]) == 2:
+        next_note_time = FILE_LENGTH * (idx / length_all_sample_max)
+        detected_notes[-1].append(next_note_time - note_time)
     if allsamples_max[idx] > 0.75 and allsamples_max[idx - note_threshold2] < 0.75:
         next_note_time = FILE_LENGTH * (idx / length_all_sample_max)
-        if(note_time > 0):
+        if(note_time > 0) and len(detected_notes[-1]) == 2:
             detected_notes[-1].append(next_note_time - note_time)
         note_time = next_note_time
         for note in final_results:
