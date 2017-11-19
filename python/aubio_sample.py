@@ -19,7 +19,7 @@ hop_s = 512  // downsample # hop size
 s = source(filename, samplerate, hop_s)
 samplerate = s.samplerate
 
-tolerance = 0.9
+tolerance = 0.6
 
 pitch_o = pitch("yin", win_s, hop_s, samplerate)
 pitch_o.set_unit("midi")
@@ -185,16 +185,16 @@ if start != 0:
 # print(notes)
 # print(len(notes))
 print(bucket)
-note_threshold = 170
+defined_note_threshold = 50
 filtered_bucket = []
 for midi, count in bucket.items():
-    if int(midi) != 0 and count > 170:
+    if int(midi) != 0 and count > defined_note_threshold:
         filtered_bucket.append(int(midi))
 
 print("filtered_bucket", filtered_bucket)
 print("length all_sample_max", len(allsamples_max))
 
-final_results = []
+general_notes_detected = []
 
 current_note = None
 start_time = 0
@@ -220,7 +220,7 @@ for entry in saved_pitch:
                 if current_note != None:
                     print("current_instance", current_instance)
                     if current_instance > note_threshold:
-                        final_results.append((current_note, start_time, entry[0], entry[0] - start_time))
+                        general_notes_detected.append((current_note, start_time, entry[0], entry[0] - start_time))
                     tolerance_instance = misNote_threshold
                     current_note = None
                     current_instance = 0
@@ -228,17 +228,15 @@ for entry in saved_pitch:
 if current_note != None:
     print("current_instance", current_instance)
     if current_instance > note_threshold:
-        final_results.append((current_note, start_time, entry[0], entry[0] - start_time))
+        general_notes_detected.append((current_note, start_time, entry[0], entry[0] - start_time))
     current_note = None
     current_instance = 0
 
-
-
 print("midiNote", ",start_time", ",end_time", ",duration")
-for tuple in final_results:
+for tuple in general_notes_detected:
     print(tuple)
-# print(final_results)
-print("length", len(final_results))
+# print(general_notes_detected)
+print("length", len(general_notes_detected))
 
 length_all_sample_max = len(allsamples_max)
 note_threshold2 = 50
@@ -252,7 +250,7 @@ while idx < length_all_sample_max:
         if(note_time > 0):
             detected_notes[-1].append(next_note_time - note_time)
         note_time = next_note_time
-        for note in final_results:
+        for note in general_notes_detected:
             if note_time > note[1] and note_time < note[2]:
                 detected_notes.append([note[0], note_time])
                 break
@@ -295,7 +293,7 @@ generate.generate_note_file(50, notes)
 
 ax2.plot(times, cleaned_pitches, 'b')
 ax2.axis( ymin = 0.9 * cleaned_pitches.min(), ymax = 1.1 * cleaned_pitches.max() )
-ax2.axis( ymin = 35, ymax = 70 )
+ax2.axis( ymin = 20, ymax = 90 )
 plt.setp(ax2.get_xticklabels(), visible = False)
 ax2.set_ylabel('f0 (midi)')
 
@@ -309,6 +307,6 @@ ax3.axis( xmin = times[0], xmax = times[-1])
 ax3.set_ylabel('condidence')
 set_xlabels_sample2time(ax3, times[-1], samplerate)
 
-#plt.show()
+plt.show()
 
 plt.savefig(os.path.basename(filename) + '.png')
