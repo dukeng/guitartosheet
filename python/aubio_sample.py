@@ -248,12 +248,14 @@ detected_notes = []
 idx = 0
 while idx < length_all_sample_max:
     if allsamples_max[idx] > 0.75 and allsamples_max[idx - note_threshold2] < 0.75:
+        next_note_time = FILE_LENGTH * (idx / length_all_sample_max)
         if(note_time > 0):
-            detected_notes[-1].append(note_time)
-        note_time = FILE_LENGTH * (idx / length_all_sample_max)
+            detected_notes[-1].append(next_note_time - note_time)
+        note_time = next_note_time
         for note in final_results:
             if note_time > note[1] and note_time < note[2]:
                 detected_notes.append([note[0], note_time])
+                break
         idx += note_threshold2
     idx += 1
 print(detected_notes)
@@ -273,8 +275,6 @@ for line in conversion_file:
 
 print(conversion_dictionary)
 
-
-
 for detected_note in detected_notes:
     detected_note[0] = conversion_dictionary[detected_note[0]]
 
@@ -293,8 +293,6 @@ for detected_note in detected_notes:
 
 generate.generate_note_file(50, notes)
 
-
-
 ax2.plot(times, cleaned_pitches, 'b')
 ax2.axis( ymin = 0.9 * cleaned_pitches.min(), ymax = 1.1 * cleaned_pitches.max() )
 ax2.axis( ymin = 35, ymax = 70 )
@@ -311,6 +309,6 @@ ax3.axis( xmin = times[0], xmax = times[-1])
 ax3.set_ylabel('condidence')
 set_xlabels_sample2time(ax3, times[-1], samplerate)
 
-# plt.show()
+#plt.show()
 
 plt.savefig(os.path.basename(filename) + '.png')
