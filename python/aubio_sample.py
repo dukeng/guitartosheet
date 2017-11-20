@@ -185,7 +185,7 @@ if start != 0:
 # print(notes)
 # print(len(notes))
 print(bucket)
-defined_note_threshold = 50
+defined_note_threshold = 20
 filtered_bucket = []
 for midi, count in bucket.items():
     if int(midi) != 0 and count > defined_note_threshold:
@@ -238,19 +238,20 @@ for tuple in general_notes_detected:
 # print(general_notes_detected)
 print("length", len(general_notes_detected))
 
-length_all_sample_max = len(allsamples_max)
+#length_all_sample_max = len(allsamples_max)
+length_confidence = len(confidences)
 note_threshold2 = 50
 low_threshold = 0.05
 note_time = 0
 detected_notes = []
 
 idx = 0
-while idx < length_all_sample_max:
-    if allsamples_max[idx] < low_threshold and note_time > 0 and len(detected_notes[-1]) == 2:
-        next_note_time = FILE_LENGTH * (idx / length_all_sample_max)
+while idx < length_confidence:
+    if confidences[idx] < low_threshold and note_time > 0 and len(detected_notes[-1]) == 2:
+        next_note_time = FILE_LENGTH * (idx / length_confidence)
         detected_notes[-1].append(next_note_time - note_time)
-    if allsamples_max[idx] > 0.75 and allsamples_max[idx - note_threshold2] < 0.75:
-        next_note_time = FILE_LENGTH * (idx / length_all_sample_max)
+    if confidences[idx] > 0.75 and confidences[idx - note_threshold2] < 0.75:
+        next_note_time = FILE_LENGTH * (idx / length_confidence)
         if(note_time > 0) and len(detected_notes[-1]) == 2:
             detected_notes[-1].append(next_note_time - note_time)
         note_time = next_note_time
@@ -260,6 +261,10 @@ while idx < length_all_sample_max:
                 break
         idx += note_threshold2
     idx += 1
+
+if len(detected_notes[-1]) == 2:
+        next_note_time = FILE_LENGTH * (idx / length_confidence)
+        detected_notes[-1].append(next_note_time - note_time)
 print(detected_notes)
 print(len(detected_notes))
 
