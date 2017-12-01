@@ -8,8 +8,21 @@ from scipy.io.wavfile import read as wavread
 
 fig=plt.figure(figsize=(6,3))
 fs = 44100 # sample rate
+x = numpy.arange(fs)
+frameNum = 2048
 
-def getAutoCorellation(samples, size=2048):
+def sinWave(frequency, amplitude, phase=0, duration = 1.0):
+    sNum = fs * duration
+    return amplitude * numpy.sin(2*numpy.pi*frequency*x/sNum + phase)
+
+def innerProdAmp(freq, signal, duration=1.0, phase=0):
+    unitSin = sinWave(freq, 1.0, phase, duration)
+    return numpy.dot(signal,unitSin) * 2 / len(unitSin)
+
+def peakRMS(samples):
+    return numpy.sqrt(numpy.mean(numpy.square(samples)))
+
+def getAutoCorellation(samples,size):
   fft = numpy.fft.rfft(samples, size)
   # reverse fft of fft * its complex conjugate
   p1 = fft * numpy.conj(fft)
@@ -44,17 +57,17 @@ def readWavSamples(filename):
 
 def autoCorFreqEstimateOverTime(filename):
     samples = readWavSamples(filename)
-    frameNum = 2048
 
     peaks = numpy.zeros(len(samples)//frameNum + 1)
     i = 0
     cur = 0
 
     while cur < len(samples):
-      workingFrames = samples[cur:cur+2048]
-      acor = getAutoCorellation(workingFrames)
+      workingFrames = samples[cur:cur+frameNum]
+      acor = getAutoCorellation(workingFrames, frameNum)
       #return acor
       peaks[i] = getMaxPeak(acor)
+      print("acor peak: ",peaks[i])
       cur += frameNum
       i += 1
     newPeaks = 44100 / peaks
@@ -63,11 +76,33 @@ def autoCorFreqEstimateOverTime(filename):
         newPeaks[i] = 0
     return newPeaks
 
-freqs = autoCorFreqEstimateOverTime('/Users/arrehnby/pdev/guitartosheet/guitar_tuning.wav')
-#freqs = autoCorFreqEstimateOverTime('/Users/arrehnby/pdev/guitartosheet/test2.wav')
+def amplitudeOverTime(filename, factor):
+    samples = readWavSamples(filename)
 
+    amplitudes = numpy.zeros(len(samples)//frameNum + 1)
+    i = 0
+    cur = 0
+
+    while cur < len(samples):
+      workingFrames = samples[cur:cur+frameNum]
+      amplitudes[i] = peakRMS(workingFrames) * factor
+      print("amp: ", amplitudes[i])
+      cur += frameNum
+      i += 1
+
+    return amplitudes
+
+fname = '/home/alrehn/dev/guitartosheet/guitar_tuning.wav'
+
+#freqs = autoCorFreqEstimateOverTime('/Users/arrehnby/pdev/guitartosheet/guitar_tuning.wav')
+#freqs = autoCorFreqEstimateOverTime('/Users/arrehnby/pdev/guitartosheet/test2.wav')
+freqs = autoCorFreqEstimateOverTime(fname)
+
+plt.plot(freqs)
+
+## Smooth frequencies detected, getting rid of outliers, only record frequencies if a group of detected frequencies are close to a certain average, then replace them all with that average
 threshold = 3
-deviation_threshold = 5
+deviation_threshold = 10
 idx = 0
 idx_jump = 1
 while(idx < len(freqs)):
@@ -103,5 +138,69 @@ while(idx < len(freqs)):
 
 
 plt.plot(freqs)
+
+amps = amplitudeOverTime(fname, 1000000)
+
+plt.plot(amps)
+
+## Sudden amplitude peak == start of a note. Match that with the nearest detected frequency = note detected
+n_cnt = 0
+amp_threshold = 30
+min_real_freq = 80
+peak_amp = 0
+delay = 3
+i = delay
+notes = []
+while i < len(amps):
+  if(amps[i] < peak_amp/25):
+    # end note
+    print("note end: ", i)
+    peak_amp = 0
+    notes[-1].append(i-notes[-1][0])
+  diff = amps[i] - amps[i-delay]
+  if(diff > amp_threshold):
+    n_cnt += 1
+    if(peak_amp > 0):
+      # end previous note if it's there
+      notes[-1].append(i-notes[-1][0])
+      peak_amp = 0
+    peak_amp = amps[i]
+    #hit start of note
+    #print("note start: ",i)
+    j = i + 8
+    while(freqs[j] < min_real_freq):
+      j += 1
+    freq = freqs[j]
+    #print("note frequency: ",freqs[j])
+    i += delay
+    notes.append([i, freqs[j]])
+  i += 1
+
+print("detected ", n_cnt, " notes")
+print(notes)
+
+## assume first note is quarter note
+quarter = notes[0][2]
+buckets = [quarter//4,quarter//2,quarter,quarter**2,quarter**4]
+
+from music21 import pitch
+
+# frequency -> note, notes into buckets
+exportNotes = []
+for i in range(len(notes)):
+  p = pitch.Pitch()
+  p.frequency = notes[i][1]
+  note_time_adj = notes[i][0] // buckets[0]
+  note_len = notes[i][2]
+  note_len_adj = 0
+  minDiff = 10000
+  for j in range(len(buckets)):
+    diff = numpy.abs(buckets[j] - note_len)
+    if diff < minDiff:
+      note_len_adj = j
+      minDiff = diff
+  exportNotes.append([note_time_adj,p.name+str(p.octave),note_len_adj])
+
+print(exportNotes)
 
 plt.savefig('freqs.png')
