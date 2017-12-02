@@ -76,7 +76,7 @@ def autoCorFreqEstimateOverTime(filename):
         newPeaks[i] = 0
     return newPeaks
 
-def amplitudeOverTime(filename, factor):
+def amplitudeOverTime(filename):
     samples = readWavSamples(filename)
 
     amplitudes = numpy.zeros(len(samples)//frameNum + 1)
@@ -85,14 +85,17 @@ def amplitudeOverTime(filename, factor):
 
     while cur < len(samples):
       workingFrames = samples[cur:cur+frameNum]
-      amplitudes[i] = peakRMS(workingFrames) * factor
+      amplitudes[i] = peakRMS(workingFrames)
       print("amp: ", amplitudes[i])
       cur += frameNum
       i += 1
 
+    factor = 1000 / numpy.max(amplitudes)
+    amplitudes = amplitudes * factor
+
     return amplitudes
 
-fname = '/home/alrehn/dev/guitartosheet/guitar_tuning.wav'
+fname = '/home/alrehn/dev/guitartosheet/pianoCMajor.wav'
 
 #freqs = autoCorFreqEstimateOverTime('/Users/arrehnby/pdev/guitartosheet/guitar_tuning.wav')
 #freqs = autoCorFreqEstimateOverTime('/Users/arrehnby/pdev/guitartosheet/test2.wav')
@@ -139,9 +142,14 @@ while(idx < len(freqs)):
 
 plt.plot(freqs)
 
-amps = amplitudeOverTime(fname, 1000000)
+amps = amplitudeOverTime(fname)
 
 plt.plot(amps)
+
+plt.savefig('freqs.png')
+
+print(len(freqs))
+print(len(amps))
 
 ## Sudden amplitude peak == start of a note. Match that with the nearest detected frequency = note detected
 n_cnt = 0
@@ -167,8 +175,10 @@ while i < len(amps):
     peak_amp = amps[i]
     #hit start of note
     #print("note start: ",i)
-    j = i + 8
+    j = min(i + 8,len(amps)-1)
     while(freqs[j] < min_real_freq):
+      if j >= len(amps)-1:
+          break;
       j += 1
     freq = freqs[j]
     #print("note frequency: ",freqs[j])
@@ -182,12 +192,15 @@ print(notes)
 ## assume first note is quarter note
 quarter = notes[0][2]
 buckets = [quarter//4,quarter//2,quarter,quarter**2,quarter**4]
+#print("b: ", buckets[0], buckets[1], buckets[2])
 
 from music21 import pitch
 
 # frequency -> note, notes into buckets
 exportNotes = []
 for i in range(len(notes)):
+  if notes[i][1] < min_real_freq:
+      continue;
   p = pitch.Pitch()
   p.frequency = notes[i][1]
   note_time_adj = notes[i][0] // buckets[0]
