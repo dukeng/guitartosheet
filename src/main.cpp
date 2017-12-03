@@ -6,6 +6,7 @@
 #include <map>
 #include "../include/display_music.h"
 #include "../include/world.h"
+#include "../include/guitar_lib.h"
 #undef main
 
 
@@ -55,6 +56,7 @@ int main(){
 
         Resources resources = loadResources("images/legend", renderer);
         World world = initWorld(&resources);
+        guitarMode(&world);
 
         bool quit = false;
         Uint32 prevTime = SDL_GetTicks();
@@ -97,21 +99,6 @@ int main(){
                 SDL_RenderClear(renderer);
 
                 renderWorld(renderer, &world, camera);
-
-                // Note cStemUp = resources.notes["crotchetUp"];
-                // cout << cStemUp.heightOffset << "\n";
-                // cStemUp.dis.x += startX;
-                // cStemUp.dis.y += firstBarY;
-                //renderDisplayable(crotchetStemUp.dis, renderer);
-
-
-                // Note n1 = cStemUp;
-                // Note n2 = n1;
-                // n2.dis.x += xInc;
-                // n2.dis.y += 3*yStep;
-
-                // renderDisplayable(n1.dis, renderer);
-                // renderDisplayable(n2.dis, renderer);
 
                 SDL_RenderPresent(renderer);
               }

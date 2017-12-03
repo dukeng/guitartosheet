@@ -6,62 +6,12 @@
 #include <vector>
 #include "display_music.h"
 #include "alrm_lib.h"
+#include "resources.h"
 
 using namespace std;
 
-struct Resources{
-  map<string, Displayable> displayables;
-  map<string, Note> notes;
-};
-
-Resources loadResources(string imageLegendPath, SDL_Renderer* renderer){
-  ifstream legendFile(imageLegendPath);
-  Resources resources;
-
-  string header;
-  getline(legendFile, header);
-  string name;
-  while(getline(legendFile, name, ',')){
-    trim(name);
-
-    string type;
-    getline(legendFile, type, ',');
-    trim(type);
-
-    string path;
-    getline(legendFile, path, ',');
-    trim(path);
-
-    //cout << "path: " << path << "\n";
-
-    string num;
-    getline(legendFile, num, ',');
-    float scaleFactor = ::atof(num.c_str());
-
-    getline(legendFile, num, ',');
-    float offset = ::atof(num.c_str());
-
-    // extra
-    string restOfTheLine;
-    getline(legendFile, restOfTheLine);
-
-    Displayable dis = loadDisplayable(path, renderer);
-    dis.scaleFactor = scaleFactor;
-    resources.displayables[name] = dis;
-
-    if(type == "note"){
-      cout << offset << "\n";
-      cout << dis.h << "\n";
-      int realOffset = (int)(offset * dis.h);
-      cout << "foff1: " << realOffset;
-      Note note = createNote(dis, 0, 0, realOffset);
-      cout << "foff2: " << note.heightOffset;
-      resources.notes[name] = note;
-    }
-  }
-  legendFile.close();
-  return resources;
-}
+#define SCREEN_LOCATION_A4 110
+#define OCTAVE_LENGTH 7
 
 struct World{
   Resources* resources;
@@ -72,7 +22,7 @@ struct World{
   int startX = 150;
   int xIncSixteenth = 24;
 
-  int a4Y = 110;
+  int a4Y = SCREEN_LOCATION_A4;
   int yStep = 12;
 
   // Additional spacing to add to notes in the second bar after the first

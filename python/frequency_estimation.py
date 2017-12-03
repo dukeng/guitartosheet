@@ -55,9 +55,7 @@ def readWavSamples(filename):
       samples = vals / 31
     return samples
 
-def autoCorFreqEstimateOverTime(filename):
-    samples = readWavSamples(filename)
-
+def autoCorFreqEstimateOverTime(samples):
     peaks = numpy.zeros(len(samples)//frameNum + 1)
     i = 0
     cur = 0
@@ -76,9 +74,7 @@ def autoCorFreqEstimateOverTime(filename):
         newPeaks[i] = 0
     return newPeaks
 
-def amplitudeOverTime(filename):
-    samples = readWavSamples(filename)
-
+def amplitudeOverTime(samples):
     amplitudes = numpy.zeros(len(samples)//frameNum + 1)
     i = 0
     cur = 0
@@ -95,54 +91,59 @@ def amplitudeOverTime(filename):
 
     return amplitudes
 
+## Smooth frequencies detected, getting rid of outliers, only record frequencies if a group of detected frequencies are close to a certain average, then replace them all with that average
+def smoothFrequencies(frequencies, threshold = 3, deviation_threshold = 10):
+  idx = 0
+  idx_jump = 1
+  freqs = numpy.copy(frequencies)
+
+  while(idx < len(freqs)):
+    sum = 0
+    for j in range(0,threshold):
+        if idx+j >= len(freqs):
+            break
+        freq = freqs[idx+j]
+        sum += freq
+    avg = sum / threshold
+    deviation = 0
+    for j in range(0,threshold):
+        if idx+j >= len(freqs):
+            break
+        freq = freqs[idx+j]
+        deviation += (avg - freq) * (avg - freq)
+    std_deviation = numpy.sqrt(deviation / threshold)
+    print("place: ", idx)
+    if std_deviation < deviation_threshold:
+        if idx+j >= len(freqs):
+            break
+        print("test1 freq: ", freqs[idx+j])
+        for j in range(0,threshold):
+            freqs[idx+j] = avg
+        idx += threshold
+    else:
+        print("test2: ", std_deviation, " and " , deviation)
+        for j in range(0,idx_jump):
+            if idx+j >= len(freqs):
+                break
+            freqs[idx+j] = 0
+        idx += idx_jump
+  return freqs
+
+
+
 fname = '/home/alrehn/dev/guitartosheet/pianoCMajor.wav'
 
-#freqs = autoCorFreqEstimateOverTime('/Users/arrehnby/pdev/guitartosheet/guitar_tuning.wav')
-#freqs = autoCorFreqEstimateOverTime('/Users/arrehnby/pdev/guitartosheet/test2.wav')
-freqs = autoCorFreqEstimateOverTime(fname)
+audio_samples = readWavSamples(fname)
+
+freqs = autoCorFreqEstimateOverTime(audio_samples)
 
 plt.plot(freqs)
 
-## Smooth frequencies detected, getting rid of outliers, only record frequencies if a group of detected frequencies are close to a certain average, then replace them all with that average
-threshold = 3
-deviation_threshold = 10
-idx = 0
-idx_jump = 1
-while(idx < len(freqs)):
-  sum = 0
-  for j in range(0,threshold):
-    if idx+j >= len(freqs):
-      break
-    freq = freqs[idx+j]
-    sum += freq
-  avg = sum / threshold
-  deviation = 0
-  for j in range(0,threshold):
-    if idx+j >= len(freqs):
-      break
-    freq = freqs[idx+j]
-    deviation += (avg - freq) * (avg - freq)
-  std_deviation = numpy.sqrt(deviation / threshold)
-  print("place: ", idx)
-  if std_deviation < deviation_threshold:
-    if idx+j >= len(freqs):
-      break
-    print("test1 freq: ", freqs[idx+j])
-    for j in range(0,threshold):
-      freqs[idx+j] = avg
-    idx += threshold
-  else:
-    print("test2: ", std_deviation, " and " , deviation)
-    for j in range(0,idx_jump):
-      if idx+j >= len(freqs):
-        break
-      freqs[idx+j] = 0
-    idx += idx_jump
-
+freqs = smoothFrequencies(freqs)
 
 plt.plot(freqs)
 
-amps = amplitudeOverTime(fname)
+amps = amplitudeOverTime(audio_samples)
 
 plt.plot(amps)
 

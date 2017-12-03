@@ -4,6 +4,6 @@ crotchetUp,  note,  images/Notes/Crotchets/Crotchet.png,              0.5, -0.35
 quaverUp,  note,  images/Notes/Quavers/Quaver single.png,              0.5, -0.35, 0, 0, 0, 0
 barline,  barline,  images/Barlines/Barline.png,                  2.0, 0,    0, 0, 0, 0 
 trebleClef,  clef, images/Clefs/Treble clef.png,                  0.6, 0,    0, 0, 0, 0
-bassClef,  clef, images/Clefs/Bass clef.png,                      0.6, 0,    0, 0, 0, 0
+bassClef,  clef, images/Clefs/Bass Clef.png,                      0.6, 0,    0, 0, 0, 0
 sharp,  accidental, images/Accidentals/Sharp.png,                      0.08, 0,    0, 0, 0, 0
 flat,  accidental, images/Accidentals/Flat.png,                      0.08, 0,    0, 0, 0, 0
