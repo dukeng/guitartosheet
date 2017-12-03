@@ -6,6 +6,73 @@ import wave
 import struct
 from scipy.io.wavfile import read as wavread
 
+allSamples = np.array()
+
+
+
+mapping = [c - 1 for c in args.channels]  # Channel numbers start with 1
+# q = queue.Queue()
+
+count =  0
+def audio_callback(indata, frames, Atime, status):
+    """This is called (from a separate thread) for each audio block."""
+    global count
+    print("count", count, "length", len(indata))
+    count += 1
+    if status:
+        print(status, file=sys.stderr)
+    for item in np.ravel(indata):
+      aFile.write("%s\n" % item)
+    time.sleep(2)
+    # aFile.write(np.ravel(indata))
+    # Fancy indexing with mapping creates a (necessary!) copy:
+    # q.put(indata[::args.downsample, mapping])
+
+
+
+try:
+    from matplotlib.animation import FuncAnimation
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import sounddevice as sd
+
+    if args.list_devices:
+        print(sd.query_devices())
+        parser.exit(0)
+    if args.samplerate is None:
+        device_info = sd.query_devices(args.device, 'input')
+        args.samplerate = device_info['default_samplerate']
+
+    length = int(args.window * args.samplerate / (1000 * args.downsample))
+    plotdata = np.zeros((length, len(args.channels)))
+
+    # fig, ax = plt.subplots()
+    # lines = ax.plot(plotdata)
+    # if len(args.channels) > 1:
+    #     ax.legend(['channel {}'.format(c) for c in args.channels],
+    #               loc='lower left', ncol=len(args.channels))
+    # ax.axis((0, len(plotdata), -1, 1))
+    # ax.set_yticks([0])
+    # ax.yaxis.grid(True)
+    # ax.tick_params(bottom='off', top='off', labelbottom='off',
+                   # right='off', left='off', labelleft='off')
+    # fig.tight_layout(pad=0)
+
+    stream = sd.InputStream(
+        device=args.device, channels=max(args.channels),
+        samplerate=args.samplerate, callback=audio_callback)
+
+    # ani = FuncAnimation(fig, interval=args.interval, blit=True)
+    # with stream:
+        # pass
+
+except Exception as e:
+    parser.exit(type(e).__name__ + ': ' + str(e))
+
+
+
+
+
 fig=plt.figure(figsize=(6,3))
 fs = 44100 # sample rate
 x = numpy.arange(fs)
@@ -218,3 +285,5 @@ for i in range(len(notes)):
 print(exportNotes)
 
 plt.savefig('freqs.png')
+
+
