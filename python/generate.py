@@ -15,6 +15,9 @@ def generate_note_file(tempo,notes):
             note_timing = note[0]
             note_name = note[1]
             note_type = note[2]
+            print(note_timing)
+            print(note_name)
+            print(note_type)
             fo.write(str(note_timing) + " " + note_name + " " + str(note_type) + " ")
 
 def main():

@@ -134,7 +134,7 @@ void readNotesToWorld(string filePath, World* world){
   file >> ect;
   file >> numNotes;
 
-  char note_locations[8] = "ABCDEFG";
+  char note_locations[8] = "CDEFGAB";
   for(int i = 0; i < numNotes;i++){
     int note_time;
     string note_name;
@@ -150,15 +150,20 @@ void readNotesToWorld(string filePath, World* world){
     // cout << "test2: \n";
     world->notesRead++;
 
-    char note_c = note_name[0];
-    int noteNum = strchr(note_locations,note_c) - note_locations;
+    char note_loc = note_name[0];
+    int noteNum = strchr(note_locations,note_loc) - note_locations + 2;
     int adj;
     char acc = ' ';
     if(note_name[1] == '#' || note_name[1] == 'b'){
       acc = note_name[1];
       adj = note_name[2] - '0';
     }
+    else if(note_name[1] == '~' || note_name[1] == '`'){
+      // cout << "test: " << note_name[1];
+      adj = note_name[2] - '0';
+    }
     else{
+      // cout << "test2: " << note_name[1];
       adj = note_name[1] - '0';
     }
 
@@ -168,10 +173,16 @@ void readNotesToWorld(string filePath, World* world){
     int noteLenMulti = 1 << note_type;
 
     Note note;
+    if(note_type == 0)
+      note = world->resources->notes["quaverUp"];
     if(note_type == 1)
       note = world->resources->notes["quaverUp"];
     if(note_type == 2)
       note = world->resources->notes["crotchetUp"];
+    if(note_type == 3)
+      note = world->resources->notes["minimUp"];
+    if(note_type == 4)
+      note = world->resources->notes["semibreve"];
 
     // this is currently assuming everything is a quarter note
     while(note_time >= 32*(world->curRow+1)){
@@ -203,7 +214,7 @@ void readNotesToWorld(string filePath, World* world){
       world->symbols.push_back(accidental);
     }
 
-    // cout << "x: " << note.dis.x << "\n";
+    cout << "x: " << note.dis.x << "y: " << note.dis.y << "\n";
 
     world->curTime = note_time;
     world->curX += timeDiff*world->xIncSixteenth;

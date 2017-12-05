@@ -56,7 +56,7 @@ int main(){
 
         Resources resources = loadResources("images/legend", renderer);
         World world = initWorld(&resources);
-        guitarMode(&world);
+        // guitarMode(&world);
 
         bool quit = false;
         Uint32 prevTime = SDL_GetTicks();

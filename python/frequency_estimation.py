@@ -6,7 +6,10 @@ import wave
 import struct
 import time
 import queue
+import subprocess
 import pylab
+import generate as note_output
+from music21 import pitch
 from scipy.io.wavfile import read as wavread
 
 fig=plt.figure(figsize=(6,3))
@@ -14,15 +17,19 @@ fs = 44100 # sample rate
 x = numpy.arange(fs)
 frameNum = 2048
 
-amp_threshold = 275
+amp_threshold = 150
 min_real_freq = 80
+max_lookahead = 10
 AMP_DELAY = 2
+
 
 channels = [1]
 downsample = 1
 window = 200
 mapping = [c - 1 for c in channels]  # Channel numbers start with 1
 q = queue.Queue()
+
+master_note_count = 0
 
 count =  0
 def audio_callback(indata, frames, Atime, status):
@@ -175,7 +182,7 @@ def getNotes(freqs, amps, start_time):
     i = delay
     notes = []
     while i < len(amps):
-      if(amps[i] < peak_amp/25):
+      if(amps[i] < peak_amp/5):
         # end note
         # print("note end: ", i)
         peak_amp = 0
@@ -191,7 +198,7 @@ def getNotes(freqs, amps, start_time):
         #print("note start: ",i)
         j = min(i + 2,len(freqs)-1)
         while(freqs[j] < min_real_freq):
-          if j >= len(amps)-1:
+          if j >= len(amps)-1 or j >= max_lookahead:
               break;
           j += 1
         freq = freqs[j]
@@ -203,7 +210,38 @@ def getNotes(freqs, amps, start_time):
       i += 1
     return notes
 
+def checkThenExport(notes):
+    global master_note_count
+    if(len(notes) > master_note_count):
+        master_note_count = len(notes)
+        note_start_real = notes[0][0]
+        for i in range(len(notes)):
+            notes[i][0] -= note_start_real
+        note_output.generate_note_file(50,notes)
 
+
+def exportNotesToFile(notes):
+    ## assume first note is quarter note
+    quarter = notes[0][2]
+    buckets = [max(quarter//4,1),max(quarter//2,1),quarter,quarter*2,quarter*4]
+    exportNotes = []
+    for i in range(len(notes)):
+        if notes[i][1] < min_real_freq:
+            continue;
+        p = pitch.Pitch()
+        p.frequency = notes[i][1]
+        note_time_adj = notes[i][0] // buckets[0]
+        note_len = notes[i][2]
+        note_len_adj = 0
+        minDiff = 10000
+        for j in range(len(buckets)):
+            # print("note len: ", note_len, ", bucket: ", buckets[j])
+            diff = numpy.abs(buckets[j] - note_len)
+            if diff < minDiff:
+                note_len_adj = j
+                minDiff = diff
+        exportNotes.append([note_time_adj,p.name+str(p.octave),note_len_adj])
+    checkThenExport(exportNotes)
 
 allFreqs = numpy.zeros(0)
 allAmps = numpy.zeros(0)
@@ -214,10 +252,14 @@ amps = numpy.zeros(0)
 curtime = 0
 frame_start = 0
 allNotes = []
+
+note_output.generate_note_file(50,[])
+subprocess.Popen(["./guitartosheet"])
+
 with stream:
     # keepGoing = True
     # while keepGoing:
-    while len(allNotes) < 5:
+    while len(allNotes) < 1000:
         detected_samples = []
         while(len(detected_samples) < frames_needed):
             window = q.get()
@@ -238,11 +280,11 @@ with stream:
         # print("len unsmoothed_freqs: ", len(unsmoothed_freqs))
 
         newFreqs = smoothFrequencies(unsmoothed_freqs)
-        allFreqs = numpy.concatenate([allFreqs,newFreqs])#for plotting
+        # allFreqs = numpy.concatenate([allFreqs,newFreqs])#for plotting
         freqs = numpy.concatenate([freqs,newFreqs])
 
         newAmps = amplitudeOverTime(audio_samples)
-        allAmps = numpy.concatenate([allAmps,newAmps])#for plotting
+        # allAmps = numpy.concatenate([allAmps,newAmps])#for plotting
         amps = numpy.concatenate([amps,newAmps])
 
         plt.savefig('freqs.png')
@@ -275,42 +317,19 @@ with stream:
         freqs = freqs[cutoff:]
         amps = amps[cutoff:]
 
-        plt.gcf().clear()
-        plt.plot(allFreqs)
-        plt.plot(allAmps)
-        plt.savefig('freqs.png')
+        # plt.gcf().clear()
+        # plt.plot(allFreqs)
+        # plt.plot(allAmps)
+        # plt.savefig('freqs.png')
+
+        if len(allNotes) > 0:
+            exportNotesToFile(allNotes)
 
 ##TEMP
-notes = allNotes
+# notes = allNotes
 
 # print("detected ", n_cnt, " notes")
-print(notes)
+# print(notes)
 
-## assume first note is quarter note
-quarter = notes[0][2]
-buckets = [max(quarter//4,1),max(quarter//2,1),quarter,quarter**2,quarter**4]
-#print("b: ", buckets[0], buckets[1], buckets[2])
-
-from music21 import pitch
-
-# frequency -> note, notes into buckets
-exportNotes = []
-for i in range(len(notes)):
-  if notes[i][1] < min_real_freq:
-      continue;
-  p = pitch.Pitch()
-  p.frequency = notes[i][1]
-  note_time_adj = notes[i][0] // buckets[0]
-  note_len = notes[i][2]
-  note_len_adj = 0
-  minDiff = 10000
-  for j in range(len(buckets)):
-    diff = numpy.abs(buckets[j] - note_len)
-    if diff < minDiff:
-      note_len_adj = j
-      minDiff = diff
-  exportNotes.append([note_time_adj,p.name+str(p.octave),note_len_adj])
-
-print(exportNotes)
-
-
+# frequency -> note, notes into bucket
+# print(exportNotes)
