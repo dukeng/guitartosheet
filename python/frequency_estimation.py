@@ -85,7 +85,7 @@ def getMaxPeak(samples):
        if(samples[i] > maxVal):
          maxVal = samples[i]
          maxI = i
-  return maxI
+  return maxI, maxVal
 
 def readWavSamples(filename):
     [samplerate, vals] = wavread(filename)
@@ -101,6 +101,7 @@ def readWavSamples(filename):
 def autoCorFreqEstimateOverTime(samples):
     # print("test2: ", len(samples))
     peaks = numpy.zeros(len(samples)//frameNum + 1)
+    peakVals = numpy.zeros(len(samples)//frameNum + 1)
     i = 0
     cur = 0
 
@@ -108,7 +109,7 @@ def autoCorFreqEstimateOverTime(samples):
       workingFrames = samples[cur:cur+frameNum]
       acor = getAutoCorellation(workingFrames, frameNum)
       #return acor
-      peaks[i] = getMaxPeak(acor)
+      peaks[i],peakVals[i] = getMaxPeak(acor)
       # print("acor peak: ",peaks[i])
       cur += frameNum
       i += 1
@@ -116,7 +117,7 @@ def autoCorFreqEstimateOverTime(samples):
     for i in range(0,len(peaks)):
       if peaks[i] == 0:
         newPeaks[i] = 0
-    return newPeaks
+    return newPeaks,peakVals
 
 def amplitudeOverTime(samples):
     amplitudes = numpy.zeros(len(samples)//frameNum + 1)
@@ -245,6 +246,7 @@ def exportNotesToFile(notes):
 
 allFreqs = numpy.zeros(0)
 allAmps = numpy.zeros(0)
+otherAmps = numpy.zeros(0)
 
 frames_needed = fs * 3
 freqs = numpy.zeros(0)
@@ -276,7 +278,10 @@ with stream:
         # print("len samples: ", len(detected_samples))
         audio_samples = numpy.array([i[0] for i in detected_samples]);
 
-        unsmoothed_freqs = autoCorFreqEstimateOverTime(audio_samples)
+        unsmoothed_freqs, acor_amps = autoCorFreqEstimateOverTime(audio_samples)
+        # factor = 1000 / numpy.max(acor_amps)
+        # acor_amps = acor_amps * factor
+        # otherAmps = numpy.concatenate([otherAmps, acor_amps])
         # print("len unsmoothed_freqs: ", len(unsmoothed_freqs))
 
         newFreqs = smoothFrequencies(unsmoothed_freqs)
@@ -286,8 +291,6 @@ with stream:
         newAmps = amplitudeOverTime(audio_samples)
         # allAmps = numpy.concatenate([allAmps,newAmps])#for plotting
         amps = numpy.concatenate([amps,newAmps])
-
-        plt.savefig('freqs.png')
 
         print("len freqs: ",len(freqs))
         print("len amps: ",len(amps))
@@ -320,6 +323,7 @@ with stream:
         # plt.gcf().clear()
         # plt.plot(allFreqs)
         # plt.plot(allAmps)
+        # plt.plot(otherAmps)
         # plt.savefig('freqs.png')
 
         if len(allNotes) > 0:
@@ -333,3 +337,4 @@ with stream:
 
 # frequency -> note, notes into bucket
 # print(exportNotes)
+
