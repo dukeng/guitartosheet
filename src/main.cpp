@@ -71,13 +71,40 @@ int main(){
                       quit = true;
                       break;
                     case SDLK_j:
+                      world.freeCamera = true;
                       camera.y += 30;
                       break;
                     case SDLK_k:
+                      world.freeCamera = true;
                       camera.y -= 30;
                       break;
-                    default:
-                      printf("keypress: %d", e.key.keysym.sym);
+                  case SDLK_c:
+                    world.freeCamera = false;
+                    break;
+                  case SDLK_h:
+                    cout << "transforming notes slower" << "\n";
+                    world.noteTypeAdj -= 1;
+                    resetWorld(&world);
+                    break;
+                  case SDLK_l:
+                    cout << "transforming notes faster" << "\n";
+                    world.noteTypeAdj += 1;
+                    resetWorld(&world);
+                    break;
+                  case SDLK_3:
+                    cout << "transforming time signature to 3:3" << "\n";
+                    world.timeSig = 3;
+                    world.xIncSixteenth = 32;
+                    resetWorld(&world);
+                    break;
+                  case SDLK_4:
+                    cout << "transforming time signature to 4:4" << "\n";
+                    world.timeSig = 4;
+                    world.xIncSixteenth = 24;
+                    resetWorld(&world);
+                    break;
+                  default:
+                    printf("keypress: %d \n", e.key.keysym.sym);
                   }
                 }
                 else{
@@ -92,6 +119,9 @@ int main(){
 
                 // update
                 readNotesToWorld("note_output", &world);
+                if(!world.freeCamera){
+                  adjustCameraAroundWorld(&camera, &world);
+                }
 
                 // draw
                 SDL_Color bgColor = { 255,255,255,255 };
@@ -99,6 +129,7 @@ int main(){
                 SDL_RenderClear(renderer);
 
                 renderWorld(renderer, &world, camera);
+
 
                 SDL_RenderPresent(renderer);
               }

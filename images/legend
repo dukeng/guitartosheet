@@ -3,9 +3,11 @@ stave,       stave, images/Staves/Stave lines 1 system large.png, 1.5, 0,    0, 
 crotchetUp,  note,  images/Notes/Crotchets/Crotchet.png,              0.5, -0.35, 0, 0, 0, 0
 quaverUp,  note,  images/Notes/Quavers/Quaver single.png,              0.5, -0.35, 0, 0, 0, 0
 minimUp,  note,  images/Notes/Minims/Minim.png,              0.5, -0.35, 0, 0, 0, 0
-semibreve,  note,  images/Notes/Semibreve/Semibreve.png,              0.5, -0.35, 0, 0, 0, 0
-barline,  barline,  images/Barlines/Barline.png,                  2.0, 0,    0, 0, 0, 0 
+semibreve,  note,  images/Notes/Semibreve/Semibreve.png,              0.5, 0, 0, 0, 0, 0
+barline,  barline,  images/Barlines/Barline.png,                  1.0, 0,    0, 0, 0, 0 
 trebleClef,  clef, images/Clefs/Treble clef.png,                  0.6, 0,    0, 0, 0, 0
 bassClef,  clef, images/Clefs/Bass Clef.png,                      0.6, 0,    0, 0, 0, 0
 sharp,  accidental, images/Accidentals/Sharp.png,                      0.08, 0,    0, 0, 0, 0
 flat,  accidental, images/Accidentals/Flat.png,                      0.08, 0,    0, 0, 0, 0
+4-4,   signature, images/Time signatures/4-4.png,0.7,0,0,0,0,0
+3-4,   signature, images/Time signatures/3-4.png,0.7,0,0,0,0,0

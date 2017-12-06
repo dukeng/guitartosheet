@@ -11,3 +11,7 @@ void trim(string& s){
     s.erase(p+1);
   }
 }
+
+int median3(int n1, int n2, int n3){
+  return max(min(n1,n2), min(max(n1,n2),n3));
+}

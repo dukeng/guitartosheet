@@ -19,6 +19,8 @@ struct World{
   vector<Displayable> symbols;
   vector<Note> notes;
 
+  bool freeCamera = false;
+
   int startX = 150;
   int xIncSixteenth = 24;
 
@@ -29,15 +31,19 @@ struct World{
   int nextBarX = 40;
 
   int curX; // in pixels
-  int curTime = 0; // in sixteenth notes
+  int curTime; // in sixteenth notes
 
   int curY; // in pixels
   int curRow;
 
+  int noteTypeAdj = 0;
+
   // Spacing to next row of bars
   int fullDownSpacing;
 
-  int notesRead = 0;
+  int notesRead;
+
+  int timeSig = 4;
 
   // cur note #, location ect
   // distances to go for next note
@@ -64,11 +70,11 @@ void addRowToWorld(World* world){
   world->staves.push_back(stave);
 
   // bass bars
-  stave.x -= stave.w*stave.scaleFactor;
-  stave.y += stave.h*stave.scaleFactor*2;
-  world->staves.push_back(stave);
-  stave.x += stave.w*stave.scaleFactor;
-  world->staves.push_back(stave);
+  // stave.x -= stave.w*stave.scaleFactor;
+  // stave.y += stave.h*stave.scaleFactor*2;
+  // world->staves.push_back(stave);
+  // stave.x += stave.w*stave.scaleFactor;
+  // world->staves.push_back(stave);
 
   // barline
   Displayable barline = resources->displayables["barline"];
@@ -85,27 +91,56 @@ void addRowToWorld(World* world){
   treble.x = baseX;
   treble.y = baseY - 10;
 
-  Displayable bass = resources->displayables["bassClef"];
-  bass.x = baseX;
-  bass.y = baseY + stave.h*stave.scaleFactor*2 + 30;
+  Displayable timeSigImg;
+  if(world->timeSig == 4){
+    timeSigImg = resources->displayables["4-4"];
+  }
+  else if(world->timeSig = 3){
+    timeSigImg = resources->displayables["3-4"];
+  }
+  else{
+    cout << "ERROR: bad time signature: " << world->timeSig << "\n";
+    timeSigImg = resources->displayables["4-4"];
+  }
+  timeSigImg.x = baseX + 50;
+  timeSigImg.y = baseY;
+
+
+  // Displayable bass = resources->displayables["bassClef"];
+  // bass.x = baseX;
+  // bass.y = baseY + stave.h*stave.scaleFactor*2 + 30;
 
   world->symbols.push_back(treble);
-  world->symbols.push_back(bass);
+  world->symbols.push_back(timeSigImg);
+  // world->symbols.push_back(bass);
 
+}
+
+void resetWorld(World* world){
+
+  world->curX = world->startX;
+  world->curY = 0;
+  world->curRow = -1;
+
+  world->notes.clear();
+  world->staves.clear();
+  world->symbols.clear();
+
+  world->curTime = 0;
+  world->notesRead = 0;
+
+  Displayable stave = world->resources->displayables["stave"];
+  // world->fullDownSpacing = stave.h*6;
+  world->fullDownSpacing = stave.h*3;
+
+  addRowToWorld(world);
 }
 
 World initWorld(Resources* resources){
   World world;
   world.resources = resources;
 
-  world.curX = world.startX;
-  world.curY = 0;
-  world.curRow = -1;
-
-  Displayable stave = resources->displayables["stave"];
-  world.fullDownSpacing = stave.h*6;
-
-  addRowToWorld(&world);
+  resetWorld(&world);
 
   return world;
 }
@@ -154,7 +189,7 @@ void readNotesToWorld(string filePath, World* world){
     int noteNum = strchr(note_locations,note_loc) - note_locations + 2;
     int adj;
     char acc = ' ';
-    if(note_name[1] == '#' || note_name[1] == 'b'){
+    if(note_name[1] == '#' || note_name[1] == 'b' || note_name[1] == '-'){
       acc = note_name[1];
       adj = note_name[2] - '0';
     }
@@ -167,12 +202,24 @@ void readNotesToWorld(string filePath, World* world){
       adj = note_name[1] - '0';
     }
 
+    note_type = median3(0,5,note_type+world->noteTypeAdj);
+    cout << "noteTypeAdj: " << world->noteTypeAdj << "\n";
+    if(world->noteTypeAdj > 0){
+      note_time = note_time << world->noteTypeAdj;
+    }
+    else{
+      for(int i = 0; i > world->noteTypeAdj; i--){
+        note_time /= 2;
+      }
+    }
+
     int stepsFromCenter = (7*(4-adj)) - noteNum;
     int distFromCenter = world->a4Y + stepsFromCenter * world->yStep;
 
     int noteLenMulti = 1 << note_type;
 
     Note note;
+
     if(note_type == 0)
       note = world->resources->notes["quaverUp"];
     if(note_type == 1)
@@ -184,15 +231,19 @@ void readNotesToWorld(string filePath, World* world){
     if(note_type == 4)
       note = world->resources->notes["semibreve"];
 
+    int twoBarTime = world->timeSig * 8;
+
     // this is currently assuming everything is a quarter note
-    while(note_time >= 32*(world->curRow+1)){
+    while(note_time >= twoBarTime*(world->curRow+1)){
       addRowToWorld(world);
-      world->curX -= ((32*(world->curRow)) - world->curTime) * world->xIncSixteenth;
+      world->curX -= ((twoBarTime*(world->curRow)) - world->curTime) * world->xIncSixteenth;
     }
+
+
     int timeDiff = (note_time-world->curTime);
-    int note_time_local = note_time % 32;
-    int cur_time_local = world->curTime % 32;
-    if(note_time_local > 15 && cur_time_local <= 15){
+    int note_time_local = note_time % twoBarTime;
+    int cur_time_local = world->curTime % twoBarTime;
+    if(note_time_local >= twoBarTime/2 && cur_time_local < twoBarTime/2){
       world->curX+=world->nextBarX;
     }
     // cout << "diff: " << timeDiff << "\n";
@@ -206,7 +257,7 @@ void readNotesToWorld(string filePath, World* world){
       if(acc == '#'){
         accidental = world->resources->displayables["sharp"];
       }
-      if(acc == 'b'){
+      if(acc == 'b' || acc == '-'){
         accidental = world->resources->displayables["flat"];
       }
       accidental.x = note.dis.x - 18;
@@ -221,4 +272,15 @@ void readNotesToWorld(string filePath, World* world){
 
   }
   file.close();
+}
+
+void adjustCameraAroundWorld(SDL_Rect* camera, World* world){
+  int speed = 8;
+  int yShouldBe = world->curY - 350;
+  if((yShouldBe - camera->y) > speed){
+    camera->y += speed;
+  }
+  if((yShouldBe - camera->y) > speed*100){
+    camera->y += speed*5;
+  }
 }

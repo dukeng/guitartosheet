@@ -317,6 +317,9 @@ with stream:
         curtime = frame_start + cutoff
         frame_start += len(freqs)
 
+        if(len(freqs) > frames_needed * 4 and cutoff < frames_needed):
+            cutoff = frames_needed
+
         freqs = freqs[cutoff:]
         amps = amps[cutoff:]
 
