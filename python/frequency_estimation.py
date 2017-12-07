@@ -285,11 +285,11 @@ with stream:
         # print("len unsmoothed_freqs: ", len(unsmoothed_freqs))
 
         newFreqs = smoothFrequencies(unsmoothed_freqs)
-        # allFreqs = numpy.concatenate([allFreqs,newFreqs])#for plotting
+        allFreqs = numpy.concatenate([allFreqs,newFreqs])#for plotting
         freqs = numpy.concatenate([freqs,newFreqs])
 
         newAmps = amplitudeOverTime(audio_samples)
-        # allAmps = numpy.concatenate([allAmps,newAmps])#for plotting
+        allAmps = numpy.concatenate([allAmps,newAmps])#for plotting
         amps = numpy.concatenate([amps,newAmps])
 
         print("len freqs: ",len(freqs))
@@ -323,11 +323,11 @@ with stream:
         freqs = freqs[cutoff:]
         amps = amps[cutoff:]
 
-        # plt.gcf().clear()
-        # plt.plot(allFreqs)
-        # plt.plot(allAmps)
-        # plt.plot(otherAmps)
-        # plt.savefig('freqs.png')
+        plt.gcf().clear()
+        plt.plot(allFreqs)
+        plt.plot(allAmps)
+        #plt.plot(otherAmps)
+        plt.savefig('freqs.png')
 
         if len(allNotes) > 0:
             exportNotesToFile(allNotes)
