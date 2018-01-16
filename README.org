@@ -1,1 +1,5 @@
-Yo!
+This project that takes in an audio stream in realtime and produces a visual sheet music representation of the music being played. While not totally accurate, the current status does produce decent results representeing pitches and timing of monophonic notes played by a guitar or piano.
+
+The audio signal analysis is done in Python, using the FFT, autocorellation and some smoothing to remove noise.
+
+The graphical display is implemented in C++ using the cross-platform SDL library.
